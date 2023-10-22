@@ -60,3 +60,21 @@ pip install Pillow
 pip install openai
 pip install requests
 pip install configparser
+```
+
+## Step 2: Install Required Libraries
+    - Create a new file named main.py. 
+    - Copy and paste the provided code from the repository into this file.
+
+## Step 3: Configure API Key
+    - Create a new file in the same directory as main.py and name it config.ini.
+    -Copy and paste the API key template provided in the repository into config.ini.
+    -Replace the placeholder with your actual OpenAI API key.
+
+## Step 4: Execute the Program
+With everything in place, navigate to the directory containing main.py in your terminal or command prompt and run:
+```bash
+python main.py
+```
+
+
