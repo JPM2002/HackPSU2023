@@ -1,9 +1,9 @@
-pip install tkinter
-pip install customtkinter
-pip install Pillow
-pip install openai
-pip install requests
-pip install configparser
+#pip install tkinter
+#pip install customtkinter
+#pip install Pillow
+#pip install openai
+#pip install requests
+#pip install configparser
 
 import tkinter as tk
 import customtkinter as ctk
