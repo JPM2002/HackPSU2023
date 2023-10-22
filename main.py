@@ -22,11 +22,11 @@ config.read('config.ini')
 openai.api_key = config.get('OPENAI', 'API_KEY')
 
 initial_questions = [
-    "Is the place where you are hot?",
+    "Is the temperature of the place hot?",
     "Is the place where you are real?",
     "Is there water around you?",
-    "Do you hear any noise?",
-    "Is it crowded where you are?"
+    "Is it a noisy place?",
+    "Is it a usually crowded place?"
 ]
 
 
@@ -40,8 +40,16 @@ def generate_next_question(initial_question, answer):
 class App(tk.Tk):
     def __init__(self):
         super().__init__()
+        self.iconbitmap('Nittany_guesser.ico')
         self.title("Nittany Guesser")
-        self.geometry("800x600")
+
+        # Compute the window's position to center it on the screen
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+        x_position = (screen_width - 800) // 2  # 800 is the width of the window
+        y_position = (screen_height - 600) // 2  # 600 is the height of the window
+        self.geometry(f"800x600+{x_position}+{y_position}")
+
         self.resizable(False, False)
         self.background = "black"
         self.font = "white"
@@ -144,6 +152,9 @@ class App(tk.Tk):
         self.character_frame.place(relx=0.25, rely=0.5, anchor="center", relwidth=0.5, relheight=1)
         self.display_random_lion_image()
 
+        self.speech_bubble = tk.Label(self, text= "<", font=("Arial",30), bg=self.background,fg=self.font)
+        self.speech_bubble.place(relx=0.5, rely=0.23, anchor="center")
+
         self.question_var = tk.StringVar()  # bloque de preguntas de arriba
         self.question_label = tk.Label(self, textvariable=self.question_var, font=("Arial", 16), wraplength=300,
                                        justify='left', bg=self.background, fg=self.font, relief=tk.FLAT, bd=5,
@@ -159,7 +170,7 @@ class App(tk.Tk):
         btn_height = 0.08
         y_positions = [0.43, 0.53, 0.63, 0.73, 0.83, 0.93]
 
-        buttons_text = ["Yes", "No", "Don't know", "Probably yes", "Probably no", "That's not a question"]
+        buttons_text = ["Yes", "No", "Don't know", "Probably yes", "Probably no", "That's not a YES/NO question"]
         commands = [lambda response=response: self.get_response_from_openai(response) for response in buttons_text]
 
         for i, (text, cmd) in enumerate(zip(buttons_text, commands)):
@@ -218,6 +229,17 @@ class App(tk.Tk):
         # Optionally, set the generated_image to None
         self.generated_image = None
 
+    def preprocess_conversation_text(self, conversation_history):
+        modified_convo = ""
+        for item in conversation_history:
+            if item["answer"] in ["No", "Probably NOT"]:
+                modified_convo += f"{item['question']} (less important) Answer: {item['answer']}. "
+            elif item["answer"] in ["That's not a YES/NO question"]:
+                modified_convo += f"{item['question']} (reconsider) Answer: {item['answer']}."
+            else:
+                modified_convo += f"{item['question']} Answer: {item['answer']}. "
+        return modified_convo
+
     def get_response_from_openai(self, button_text):
         # change the lion image
         self.lion_label.destroy()
@@ -228,15 +250,20 @@ class App(tk.Tk):
         current_question = self.question_var.get()
         self.conversation_history.append({"question": current_question, "answer": button_text})
 
-        # Utilize the conversation history in the prompt for better context
+        # Conversation history in prompt for better context
         conversation_text = " ".join(
             [f"{item['question']} Answer: {item['answer']}." for item in self.conversation_history])
 
+        conversation_text = self.preprocess_conversation_text(self.conversation_history)
+
         prompt_text = (
-            f"Given the conversation context: {conversation_text}, and considering your aim is to guess the user's location, "
+            f"Given the conversation context: {conversation_text}, and knowing that responses marked as 'less important'"
+            "should be weighed less at the time of giving a final answer, "
             "suggest a coherent and relevant yes/no question to further narrow down the location, or provide a final guess. "
-            "The question must be framed such that the answer can ONLY be YES or NO. "
-            "Ensure you don't ask a question that's already been asked.")
+            "The question must be framed such that the answer can ONLY be YES or NO. If the response is marked as 'reconsider'"
+            "it means it wasn't a YES/NO questions and should be reformulated."
+            "Periodically check the conversation context so you DO NOT ask a question that has already been asked."
+            "Make sure to NOT include previous answers in the questions.")
 
         # Truncate the prompt if its length exceeds 950 (to allow some space for API-specific characters)
         if len(prompt_text) > 950:
@@ -251,8 +278,8 @@ class App(tk.Tk):
             if openai_response_text.endswith("?"):
                 self.question_var.set(openai_response_text)
             else:
-                # If the response isn't a question, ask the API for another one
-                self.question_gui()  # Or any other mechanism to request another question from the API
+                # Ask the API for another one if the output isn't a question
+                self.question_gui()
         elif openai_response_text.endswith("?") and self.questions_asked < 15:
             self.question_var.set(openai_response_text)
         else:
