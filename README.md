@@ -43,3 +43,20 @@ Hello there! 🚀 Welcome to the exciting world of `Nittany Guesser` - an intuit
 Experience the thrill of AI-driven conversation. Challenge it, outthink it, or simply have fun with it. Who knows, you might just be surprised by how accurate or creative `Nittany Guesser` can be!
 
 Happy Guessing! 🎉
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+# Setting Up and Running the Image Guessing Program
+
+**Prerequisites**: Ensure you have Python installed on your machine.
+
+## Step 1: Install Required Libraries
+
+Open your terminal or command prompt and execute the following commands to install the necessary libraries:
+
+```bash
+pip install tkinter
+pip install customtkinter
+pip install Pillow
+pip install openai
+pip install requests
+pip install configparser
